@@ -2,7 +2,7 @@ from flask import Flask
 from .db import db, migrate
 from .models import task, goal
 import os
-
+from .routes.task_routes import bp as task_bp
 def create_app(config=None):
     app = Flask(__name__)
 
@@ -18,5 +18,6 @@ def create_app(config=None):
     migrate.init_app(app, db)
 
     # Register Blueprints here
+    app.register_blueprint(task_bp, url_prefix='/tasks')
 
     return app
