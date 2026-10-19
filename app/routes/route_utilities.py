@@ -20,7 +20,7 @@ def retrieve_model(cls, model_id):
 def create_model(cls, data):
     try:
         new_model = cls.from_dict(data)
-    except KeyError as e:
+    except KeyError:
         response = {"details": "Invalid data"}
         abort(make_response(response, 400))
     
@@ -36,6 +36,11 @@ def get_models_with_filters(cls, filters=None):
         for key, value in filters.items():
             if hasattr(cls, key):
                 query = query.where(getattr(cls, key).ilike(f"%{value}%"))
+            if key == "sort":
+                if value == "asc":
+                    query = query.order_by(cls.title.asc())
+                elif value == "desc":
+                    query = query.order_by(cls.title.desc())
     
     models = db.session.scalars(query).all()
     return [model.to_dict() for model in models]
