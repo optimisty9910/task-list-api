@@ -1,3 +1,5 @@
+import os
+import requests
 from flask import Blueprint, request, Response
 from .route_utilities import retrieve_model, create_model, get_models_with_filters
 from datetime import datetime
@@ -35,6 +37,20 @@ def mark_complete(task_id):
     task = retrieve_model(Task, task_id)
     task.completed_at = datetime.now()
     db.session.commit()
+    
+    slack_data = {
+        "channel": os.environ.get("SLACK_CHANNEL"),
+        "text": f"Someone just completed the task {task.title}"
+    }
+    slack_headers = {
+        "Authorization": f"Bearer {os.environ.get('SLACK_TOKEN')}"
+    }
+    requests.post(
+        "https://slack.com/api/chat.postMessage",
+        headers=slack_headers,
+        json=slack_data
+    )
+
     return Response(status=204, mimetype='application/json')
 
 @bp.patch("/<task_id>/mark_incomplete")
