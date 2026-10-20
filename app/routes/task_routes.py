@@ -1,7 +1,7 @@
 import os
 import requests
 from flask import Blueprint, request, Response
-from .route_utilities import retrieve_model, create_model, get_models_with_filters
+from .route_utilities import retrieve_model, create_model, delete_model, get_models_with_filters
 from datetime import datetime
 from ..models.task import Task
 from ..db import db
@@ -62,7 +62,4 @@ def mark_incomplete(task_id):
 
 @bp.delete("/<task_id>")
 def delete_task(task_id):
-    task = retrieve_model(Task, task_id)
-    db.session.delete(task)
-    db.session.commit()
-    return Response(status=204, mimetype='application/json')
+    return delete_model(Task, task_id)

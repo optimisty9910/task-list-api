@@ -1,4 +1,4 @@
-from flask import abort, make_response
+from flask import abort, make_response, Response
 from ..db import db
 
 def retrieve_model(cls, model_id):
@@ -44,3 +44,9 @@ def get_models_with_filters(cls, filters=None):
     
     models = db.session.scalars(query).all()
     return [model.to_dict() for model in models]
+
+def delete_model(cls, model_id):
+    model = retrieve_model(cls, model_id)
+    db.session.delete(model)
+    db.session.commit()
+    return Response(status=204, mimetype='application/json')
