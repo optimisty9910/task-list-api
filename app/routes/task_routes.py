@@ -1,7 +1,7 @@
 import os
 import requests
 from flask import Blueprint, request, Response
-from .route_utilities import retrieve_model, create_model, delete_model, get_models_with_filters
+from .route_utilities import validate_model, create_model, delete_model, get_models_with_filters
 from datetime import datetime
 from ..models.task import Task
 from ..db import db
@@ -19,11 +19,11 @@ def get_all_tasks():
 
 @bp.get("/<task_id>")
 def get_one_task(task_id):
-    return retrieve_model(Task, task_id).to_dict()
+    return validate_model(Task, task_id).to_dict()
 
 @bp.put("/<task_id>")
 def update_task(task_id):
-    task = retrieve_model(Task, task_id)
+    task = validate_model(Task, task_id)
     request_body = request.get_json()
 
     task.title = request_body["title"]
@@ -34,7 +34,7 @@ def update_task(task_id):
 
 @bp.patch("/<task_id>/mark_complete")
 def mark_complete(task_id):
-    task = retrieve_model(Task, task_id)
+    task = validate_model(Task, task_id)
     task.completed_at = datetime.now()
     db.session.commit()
     
@@ -55,7 +55,7 @@ def mark_complete(task_id):
 
 @bp.patch("/<task_id>/mark_incomplete")
 def mark_incomplete(task_id):
-    task = retrieve_model(Task, task_id)
+    task = validate_model(Task, task_id)
     task.completed_at = None
     db.session.commit()
     return Response(status=204, mimetype='application/json')

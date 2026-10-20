@@ -3,7 +3,7 @@ from ..models.goal import Goal
 from ..models.task import Task
 from ..db import db
 from flask import request, Response
-from .route_utilities import create_model, delete_model, get_models_with_filters, retrieve_model
+from .route_utilities import create_model, delete_model, get_models_with_filters, validate_model
 
 bp = Blueprint("goal", __name__, url_prefix="/goals")
 
@@ -14,7 +14,7 @@ def create_goal():
 
 @bp.post("/<goal_id>/tasks")
 def create_task_for_goal(goal_id):
-    goal = retrieve_model(Goal, goal_id)
+    goal = validate_model(Goal, goal_id)
 
     request_body = request.get_json()
 
@@ -24,7 +24,7 @@ def create_task_for_goal(goal_id):
     
     task_ids = []
     for task_id in request_body["task_ids"]:
-        task = retrieve_model(Task, task_id)
+        task = validate_model(Task, task_id)
         task.goal_id = goal.id
         task_ids.append(task_id)
     db.session.commit()
@@ -38,11 +38,11 @@ def get_all_goals():
 
 @bp.get("/<goal_id>")
 def get_one_goal(goal_id):
-    return retrieve_model(Goal, goal_id).to_dict()
+    return validate_model(Goal, goal_id).to_dict()
 
 @bp.get("/<goal_id>/tasks")
 def get_tasks_for_goal(goal_id):
-    goal= retrieve_model(Goal, goal_id)
+    goal= validate_model(Goal, goal_id)
 
     response = goal.to_dict()
 
@@ -53,7 +53,7 @@ def get_tasks_for_goal(goal_id):
 
 @bp.put("/<goal_id>")
 def update_goal(goal_id):
-    goal = retrieve_model(Goal, goal_id)
+    goal = validate_model(Goal, goal_id)
     request_body = request.get_json()
 
     goal.title = request_body["title"]
