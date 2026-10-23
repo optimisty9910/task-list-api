@@ -45,6 +45,16 @@ def get_models_with_filters(cls, filters=None):
     models = db.session.scalars(query).all()
     return [model.to_dict() for model in models]
 
+def update_model(cls, model_id, model_data):
+    model = validate_model(cls, model_id)
+
+    for key, value in model_data.items():
+        if hasattr(model, key):
+            setattr(model, key, value)
+    
+    db.session.commit()
+    return Response(status=204, mimetype='application/json')
+
 def delete_model(cls, model_id):
     model = validate_model(cls, model_id)
     db.session.delete(model)
