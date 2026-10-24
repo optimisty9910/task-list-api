@@ -31,7 +31,7 @@ class Task(db.Model):
         return cls(
             title=data["title"],
             description=data["description"],
-            completed_at=datetime.fromisoformat(data["completed_at"]) if data.get("completed_at") else None,
+            completed_at=datetime.fromisoformat(data["completed_at"]) if isinstance(data.get("completed_at"), datetime) else None,
             goal_id=goal_id
         )
     

@@ -1,5 +1,6 @@
 from flask import abort, make_response, Response
 from ..db import db
+from sqlalchemy import inspect
 
 def validate_model(cls, model_id):
     try:
@@ -33,14 +34,21 @@ def get_models_with_filters(cls, filters=None):
     query = db.select(cls)
     
     if filters:
+        sort_by = filters.get("sort_by")
+        sort_order = filters.get("sort_order")
+
         for key, value in filters.items():
+            if key in ["sort_by", "sort_order"]:
+                continue
             if hasattr(cls, key):
                 query = query.where(getattr(cls, key).ilike(f"%{value}%"))
-            if key == "sort":
-                if value == "asc":
-                    query = query.order_by(cls.title.asc())
-                elif value == "desc":
-                    query = query.order_by(cls.title.desc())
+
+        if sort_by and hasattr(cls, sort_by):
+            sort_column = getattr(cls, sort_by)
+            if sort_order.lower() == "asc":
+                query = query.order_by(sort_column.asc())
+            elif sort_order.lower() == "desc":
+                query = query.order_by(sort_column.desc())
     
     models = db.session.scalars(query).all()
     return [model.to_dict() for model in models]
@@ -48,8 +56,20 @@ def get_models_with_filters(cls, filters=None):
 def update_model(cls, model_id, model_data):
     model = validate_model(cls, model_id)
 
+    mapper = inspect(cls)
+
     for key, value in model_data.items():
-        if hasattr(model, key):
+        if key in mapper.columns:
+            column = mapper.columns[key]
+
+            try:
+                expected_type = column.type.python_type
+            except NotImplementedError:
+                expected_type = None
+            
+            if expected_type and not isinstance(value, expected_type) and value is not None:
+                continue
+            
             setattr(model, key, value)
     
     db.session.commit()

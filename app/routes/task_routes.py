@@ -23,6 +23,9 @@ def get_one_task(task_id):
 
 @bp.put("/<task_id>")
 def update_task(task_id):
+    # Enhancements: Handle non-datetime values for completed_at by setting them to None
+    if request.get_json().get("completed_at") and not isinstance(request.get_json().get("completed_at"), datetime):
+        request.get_json()["completed_at"] = None
     return update_model(Task, task_id, request.get_json())
 
 @bp.patch("/<task_id>/mark_complete")
